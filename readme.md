@@ -3,7 +3,7 @@
 A Twitter bot that looks at news headlines and confuses them.
 
 ## Documentation
-See [the nice-looking explanation of index.js] in order to understand how the bot works.
+See [the nice-looking explanation of index.js](http://tinysubversions.com/twoheadlines/docs/) in order to understand how the bot works.
 
 ##Instructions
 
