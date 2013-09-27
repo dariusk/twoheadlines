@@ -1,5 +1,5 @@
 {
-  "name": "newsnews",
+  "name": "twoheadlines",
   "version": "0.0.1",
   "description": "Confused about the news.",
   "main": "index.js",
@@ -8,12 +8,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:dariusk/newsnews.git"
+    "url": "git@github.com:dariusk/twoheadlines.git"
   },
   "author": "Darius Kazemi",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dariusk/newsnews/issues"
+    "url": "https://github.com/dariusk/twoheadlines/issues"
   },
   "engines": {
     "node": "0.10.17"
