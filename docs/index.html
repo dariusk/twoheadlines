@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>index.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>index.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h3>Libraries and globals</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>This bot works by inspecting the front page of Google News. So we need
+to use <code>request</code> to make HTTP requests, <code>cheerio</code> to parse the page using
+a jQuery-like API, <code>underscore.deferred</code> for <a href="http://otaqui.com/blog/1637/introducing-javascript-promises-aka-futures-in-google-chrome-canary/">promises</a>,
+and <code>twit</code> as our Twitter API library.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">var</span> request = require(<span class="string">'request'</span>);
+<span class="keyword">var</span> cheerio = require(<span class="string">'cheerio'</span>);
+<span class="keyword">var</span> _ = require(<span class="string">'underscore.deferred'</span>);
+<span class="keyword">var</span> Twit = require(<span class="string">'twit'</span>);
+<span class="keyword">var</span> T = <span class="keyword">new</span> Twit(require(<span class="string">'./config.js'</span>));
+
+<span class="keyword">var</span> baseUrl = <span class="string">'http://news.google.com'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h3>Utility Functions</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>This function lets us call <code>pick()</code> on any array to get a random element from it.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Array.prototype.pick = <span class="keyword">function</span>() {
+  <span class="keyword">return</span> <span class="keyword">this</span>[Math.floor(Math.random()*<span class="keyword">this</span>.length)];
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>This function lets us call <code>pickRemove()</code> on any array to get a random element
+from it, then remove that element so we can&#39;t get it again.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Array.prototype.pickRemove = <span class="keyword">function</span>() {
+  <span class="keyword">var</span> index = Math.floor(Math.random()*<span class="keyword">this</span>.length);
+  <span class="keyword">return</span> <span class="keyword">this</span>.splice(index,<span class="number">1</span>)[<span class="number">0</span>];
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h3>Screen Scraping</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>We pass this function a category code (see <code>tweet</code> below). We grab the Google News
+topics page for that category and load the html into <code>cheerio</code>. We parse the page for
+text from the links in the left-hand bar, which becomes a list of topics.
+For example, if we passed it ‘e’ for Entertainment, we might get: Miley Cyrus, Oscars,
+Kanye West, and so on.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="keyword">function</span> <span class="title">getTopics</span><span class="params">(category)</span> {</span>
+  <span class="keyword">var</span> topics = [];
+  <span class="keyword">var</span> dfd = <span class="keyword">new</span> _.Deferred();
+  request(baseUrl + <span class="string">'/news/section?ned=us&amp;topic='</span> + category, <span class="function"><span class="keyword">function</span> <span class="params">(error, response, body)</span> {</span>
+    <span class="keyword">if</span> (!error &amp;&amp; response.statusCode === <span class="number">200</span>) {
+      <span class="keyword">var</span> $ = cheerio.load(body);
+      $(<span class="string">'.topic'</span>).each(<span class="keyword">function</span>() {
+        <span class="keyword">var</span> topic = {};
+        topic.name = <span class="keyword">this</span>.text();
+        topic.url = baseUrl + <span class="keyword">this</span>.children().first().attr(<span class="string">'href'</span>);
+        topics.push(topic);
+      });
+      dfd.resolve(topics);
+    }
+    <span class="keyword">else</span> {
+      dfd.reject();
+    }
+  });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>The function returns a promise, and the promise resolves to the array of topics.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="keyword">return</span> dfd.promise();
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>We pass this function a URL for a specific topic (for example:
+<a href="https://news.google.com/news/section?pz=1&amp;cf=all&amp;ned=us&amp;hl=en&amp;q=Miley%20Cyrus">Miley Cyrus</a>.
+We then get the page, feed the HTML to <code>cheerio</code>, and then pick a random headline
+from the page.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="keyword">function</span> <span class="title">getHeadline</span><span class="params">(url)</span> {</span>
+  <span class="keyword">var</span> dfd = <span class="keyword">new</span> _.Deferred();
+  request(url, <span class="function"><span class="keyword">function</span> <span class="params">(error, response, body)</span> {</span>
+    <span class="keyword">if</span> (!error &amp;&amp; response.statusCode === <span class="number">200</span>) {
+      <span class="keyword">var</span> $ = cheerio.load(body);
+      <span class="keyword">var</span> headlines = $(<span class="string">'.titletext'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p><code>pick()</code> doesn&#39;t work here because <code>headlines</code> isn&#39;t an array, so instead we use <code>cheerio</code>&#39;s <code>eq</code> which
+give us a matched element at a given index, and pass it a random number.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="keyword">var</span> headline = headlines.eq(Math.floor(Math.random()*headlines.length)).text();
+      dfd.resolve(headline);
+    }
+    <span class="keyword">else</span> {
+      dfd.reject();
+    }
+  });
+  <span class="keyword">return</span> dfd.promise();
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <h3>Tweeting</h3>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <pre><code> Category codes:
+ w:  world
+ n:  region
+ b:  business
+ tc: technology
+ e:  entertainment
+ s:  sports</code></pre>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>This is the core function that is called on a timer that initiates the @twoheadlines algorithm.
+First, we get our list of topics from the Google News sidebar. 
+Then we pick-and-remove a random topic from that list.
+Next we grab a random headline available for that topic.
+If the topic itself is in the headline itself, we replace it with a new topic. (For example,
+if <code>topic.name</code> is “Miley Cyrus” and <code>headline</code> is “Miley Cyrus Wins a Grammy”, then we
+get a topic from a different category of news and fill in the blank for &quot;<strong>__</strong> Wins a Grammy&quot;.)
+If we&#39;re unable to find a headline where we can easily find/replace, we simply try again.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="keyword">function</span> <span class="title">tweet</span><span class="params">()</span> {</span>
+  <span class="keyword">var</span> categoryCodes = [<span class="string">'w'</span>, <span class="string">'n'</span>, <span class="string">'b'</span>, <span class="string">'tc'</span>, <span class="string">'e'</span>, <span class="string">'s'</span>];
+  getTopics(categoryCodes.pickRemove()).then(<span class="keyword">function</span>(topics) {
+    <span class="keyword">var</span> topic = topics.pickRemove();
+    console.log(topic);
+    getHeadline(topic.url).then(<span class="keyword">function</span>(headline) {
+      <span class="keyword">if</span> (headline.indexOf(topic.name) &gt; -<span class="number">1</span>) {
+        getTopics(categoryCodes.pickRemove()).then(<span class="keyword">function</span>(topics) {
+          <span class="keyword">var</span> newTopic = topics.pick();
+          <span class="keyword">var</span> newHeadline = headline.replace(topic.name, newTopic.name);
+          console.log(newHeadline);
+          T.post(<span class="string">'statuses/update'</span>, { status: newHeadline }, <span class="keyword">function</span>(err, reply) {
+            <span class="keyword">if</span> (err) {
+              console.log(<span class="string">'error:'</span>, err);
+            }
+            <span class="keyword">else</span> {
+              console.log(<span class="string">'reply:'</span>, reply);
+            }
+          });
+        });
+      }
+      <span class="keyword">else</span> {
+        console.log(<span class="string">'couldn\'t find a headline match, trying again...'</span>);
+        tweet();
+      }
+    });
+  });
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Tweets once on initialization.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>tweet();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Tweets every 15 minutes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>setInterval(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">try</span> {
+    tweet();
+  }
+  <span class="keyword">catch</span> (e) {
+    console.log(e);
+  }
+}, <span class="number">1000</span> * <span class="number">60</span> * <span class="number">60</span>);</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

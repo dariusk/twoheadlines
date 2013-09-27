@@ -1,0 +1,34 @@
+{
+  "name": "newsnews",
+  "version": "0.0.1",
+  "description": "Confused about the news.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dariusk/newsnews.git"
+  },
+  "author": "Darius Kazemi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dariusk/newsnews/issues"
+  },
+  "engines": {
+    "node": "0.10.17"
+  },
+  "dependencies": {
+    "request": "~2.27.0",
+    "cheerio": "~0.12.1",
+    "twit": "~1.1.9",
+    "underscore.deferred": "~0.4.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-docco2": "~0.1.5",
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-contrib-watch": "~0.4.0",
+    "underscore": "~1.5.2"
+  }
+}
